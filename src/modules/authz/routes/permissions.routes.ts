@@ -24,10 +24,7 @@ export async function permissionsRoutes(fastify: FastifyInstance) {
             const permission = await fastify.authz.permissions.getPermissionById(
                 request.params.permissionId
             );
-            return reply.code(200).send({
-                ...permission,
-                createdAt: permission.createdAt.toISOString(),
-            });
+            return reply.code(200).sendWithDates(permission);
         }
     );
 

@@ -7,6 +7,15 @@ CREATE SCHEMA IF NOT EXISTS "authz";
 -- CreateSchema
 CREATE SCHEMA IF NOT EXISTS "core";
 
+-- CreateEnum
+CREATE TYPE "authz"."PermissionAction" AS ENUM ('CREATE', 'READ', 'UPDATE', 'DELETE');
+
+-- CreateEnum
+CREATE TYPE "authz"."PermissionResource" AS ENUM ('USER', 'ORGANIZATION', 'ROLE', 'PERMISSION', 'POLICY', 'SESSION', 'ACCOUNT', 'AUDIT_LOG');
+
+-- CreateEnum
+CREATE TYPE "authz"."PermissionScope" AS ENUM ('GLOBAL', 'ORGANIZATION');
+
 -- CreateTable
 CREATE TABLE "core"."user" (
     "id" TEXT NOT NULL,
@@ -109,10 +118,11 @@ CREATE TABLE "authz"."RoleInherit" (
 -- CreateTable
 CREATE TABLE "authz"."Permission" (
     "id" SERIAL NOT NULL,
-    "action" TEXT NOT NULL,
-    "resource" TEXT NOT NULL,
+    "action" "authz"."PermissionAction" NOT NULL,
+    "resource" "authz"."PermissionResource" NOT NULL,
     "description" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "scope" "authz"."PermissionScope" NOT NULL DEFAULT 'GLOBAL',
 
     CONSTRAINT "Permission_pkey" PRIMARY KEY ("id")
 );

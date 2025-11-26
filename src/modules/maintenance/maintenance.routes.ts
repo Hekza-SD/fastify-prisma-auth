@@ -24,18 +24,18 @@ export default async function maintenanceRoutes(fastify: FastifyInstance) {
             const { enabled } = req.body;
 
             if (fastify.maintenance.enabled === enabled) {
-                return reply.code(200).send({
+                return reply.code(200).sendWithDates({
                     enabled: fastify.maintenance.enabled,
-                    startTime: fastify.maintenance.startTime?.toISOString() || null,
+                    startTime: fastify.maintenance.startTime || null,
                 });
             }
 
             fastify.maintenance.enabled = enabled;
             fastify.maintenance.startTime = enabled ? new Date() : null;
 
-            reply.code(200).send({
+            reply.code(200).sendWithDates({
                 enabled: fastify.maintenance.enabled,
-                startTime: fastify.maintenance.startTime?.toISOString() || null,
+                startTime: fastify.maintenance.startTime || null,
             });
         }
     );

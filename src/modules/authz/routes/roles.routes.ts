@@ -88,12 +88,7 @@ export async function rolesRoutes(fastify: FastifyInstance) {
         async (request, reply) => {
             const { organizationId } = request.query;
             const roles = await fastify.authz.roles.getRoles(organizationId);
-            return reply.code(200).send(
-                roles.map((role) => ({
-                    ...role,
-                    createdAt: role.createdAt.toISOString(),
-                }))
-            );
+            return reply.code(200).sendWithDates(roles);
         }
     );
 
@@ -111,12 +106,7 @@ export async function rolesRoutes(fastify: FastifyInstance) {
         async (request, reply) => {
             const { organizationId, name, description } = request.body;
             const role = await fastify.authz.roles.createRole(organizationId, name, description);
-            return reply.code(200).send([
-                {
-                    ...role,
-                    createdAt: role.createdAt.toISOString(),
-                },
-            ]);
+            return reply.code(200).sendWithDates(role);
         }
     );
 
@@ -152,10 +142,7 @@ export async function rolesRoutes(fastify: FastifyInstance) {
 
             const role = await fastify.authz.roles.getRoleByIdOrThrow(roleId);
 
-            return reply.code(200).send({
-                ...role,
-                createdAt: role.createdAt.toISOString(),
-            });
+            return reply.code(200).sendWithDates(role);
         }
     );
 
@@ -198,13 +185,7 @@ export async function rolesRoutes(fastify: FastifyInstance) {
         async (request, reply) => {
             const { roleId } = request.params as { roleId: number };
             const members = await fastify.authz.roleMemberships.getRoleMembers(roleId);
-            return reply.code(200).send(
-                members.map((member) => ({
-                    ...member,
-                    createdAt: member.createdAt.toISOString(),
-                    updatedAt: member.updatedAt.toISOString(),
-                }))
-            );
+            return reply.code(200).sendWithDates(members);
         }
     );
 
@@ -263,12 +244,7 @@ export async function rolesRoutes(fastify: FastifyInstance) {
         async (request, reply) => {
             const { roleId } = request.params;
             const permissions = await fastify.authz.rolePermissions.getRolePermissions(roleId);
-            return reply.code(200).send(
-                permissions.map((permission) => ({
-                    ...permission,
-                    createdAt: permission.createdAt.toISOString(),
-                }))
-            );
+            return reply.code(200).sendWithDates(permissions);
         }
     );
 

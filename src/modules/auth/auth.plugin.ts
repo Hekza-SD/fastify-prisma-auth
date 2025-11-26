@@ -1,7 +1,9 @@
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
+import { fromNodeHeaders } from 'better-auth/node';
 import type { FastifyInstance } from 'fastify';
 import fp from 'fastify-plugin';
+import { UnauthorizedError } from '../../errors/unauthorized-error';
 
 async function authPlugin(fastify: FastifyInstance) {
     const auth = betterAuth({
@@ -43,11 +45,16 @@ async function authPlugin(fastify: FastifyInstance) {
     });
 
     fastify.decorate('auth', auth);
+    fastify.decorateRequest('session', null);
 }
 
 declare module 'fastify' {
     interface FastifyInstance {
         auth: ReturnType<typeof betterAuth>;
+    }
+
+    interface FastifyRequest {
+        session: Awaited<ReturnType<ReturnType<typeof betterAuth>['api']['getSession']>> | null;
     }
 }
 

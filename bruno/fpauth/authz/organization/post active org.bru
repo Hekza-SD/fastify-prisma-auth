@@ -1,17 +1,13 @@
 meta {
-  name: get by id
+  name: post active org
   type: http
-  seq: 2
+  seq: 5
 }
 
 get {
-  url: {{baseUrl}}/api/authz/permissions/:id
+  url: {{baseUrl}}/api/authz/organizations/active
   body: none
   auth: inherit
-}
-
-params:path {
-  id: 1
 }
 
 settings {

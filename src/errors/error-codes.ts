@@ -7,4 +7,5 @@ export enum ErrorCodes {
     ALREADY_EXISTS = 'ALREADY_EXISTS',
     NOT_FOUND = 'NOT_FOUND',
     BAD_REQUEST = 'BAD_REQUEST',
+    UNAUTHORIZED = 'UNAUTHORIZED',
 }

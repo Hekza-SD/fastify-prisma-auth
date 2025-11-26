@@ -24,6 +24,7 @@ model User {
   // Modules relations
   roleMemberships   RoleMembership[]
   organizationMemberships OrganizationMembership[]
+  userActiveOrganizations UserActiveOrganization[]
   auditLogs     AccessAuditLog[]
 
   @@map("user")
@@ -90,6 +91,7 @@ model Organization {
   // relations
   users       OrganizationMembership[]
   roles       Role[]
+  userActiveOrganizations UserActiveOrganization[]
 
   @@schema("authz")
 }
@@ -145,14 +147,43 @@ model Permission {
   
   // We dont use a prisma enum but a typescript enum to allow more dynamic permissions   
   // without needing to migrate the database each time a new permission is added
-  action      String
-  resource    String
+  action      PermissionAction
+  resource    PermissionResource
   description String?
   createdAt   DateTime @default(now())
+  scope      PermissionScope @default(GLOBAL)
 
   rolePermissions RolePermission[]
 
   @@unique([action, resource])
+  @@schema("authz")
+}
+
+// Must match the PermissionAction typescript enum
+enum PermissionAction {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+  @@schema("authz")
+}
+
+// Must match the PermissionResource typescript enum
+enum PermissionResource {
+  USER
+  ORGANIZATION
+  ROLE
+  PERMISSION
+  POLICY
+  SESSION
+  ACCOUNT
+  AUDIT_LOG
+  @@schema("authz")
+}
+
+enum PermissionScope {
+  GLOBAL
+  ORGANIZATION
   @@schema("authz")
 }
 
@@ -199,6 +230,19 @@ model RoleMembership {
   @@unique([userId, roleId])
   @@schema("authz")
 }
+
+model UserActiveOrganization {
+  userId         String   @id
+  organizationId String
+
+  user           User      @relation(fields: [userId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@unique([userId, organizationId])
+  @@map("user_active_organization")
+  @@schema("authz")
+}
+
 
 model AccessAuditLog {
   id          Int   @id @default(autoincrement())
