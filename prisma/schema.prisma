@@ -172,6 +172,7 @@ enum PermissionAction {
 enum PermissionResource {
   USER
   ORGANIZATION
+  ORGANIZATION_MEMBERSHIP
   ROLE
   PERMISSION
   POLICY

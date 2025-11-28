@@ -1,13 +1,15 @@
 import { Organization, PrismaClient } from '../../../src/generated/prisma/client';
+import { config } from '../../../src/config/index';
 
-export const GLOBAL_ORG_ID = '00000000-0000-0000-0000-000000000000';
-export const GLOBAL_ORG_SLUG = 'global-organization';
+export const GLOBAL_ORG_ID = config.GLOBAL_ORGANIZATION_ID;
+export const GLOBAL_ORG_SLUG = config.GLOBAL_ORGANANIZATION_SLUG;
+export const GLOBAL_ORG_NAME = config.GLOBAL_ORG_NAME;
 
 const organizations: Omit<Organization, 'createdAt' | 'updatedAt'>[] = [
     {
         id: GLOBAL_ORG_ID,
         slug: GLOBAL_ORG_SLUG,
-        name: 'Global Organization',
+        name: GLOBAL_ORG_NAME,
     },
     {
         id: '11111111-1111-1111-1111-111111111111',

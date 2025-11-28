@@ -66,14 +66,24 @@ export const createOrganizationMembershipService = (fastify: FastifyInstance) =>
         }));
     },
 
-    async getActiveOrganizationForUser(userId: string) {
-        const result = await fastify.prisma.userActiveOrganization.findUnique({
-            where: {
-                userId,
-            },
-            include: { organization: true },
-        });
-        return result?.organization;
+    async getActiveOrganizationForUserOrThrow(userId: string) {
+        try {
+            const result = await fastify.prisma.userActiveOrganization.findUniqueOrThrow({
+                where: {
+                    userId,
+                },
+                include: { organization: true },
+            });
+            return result?.organization;
+        } catch (error) {
+            throw new OrganizationError(
+                ErrorMessages.ACTIVE_ORGANIZATION_NOT_FOUND,
+                404,
+                ErrorCodes.NOT_FOUND,
+                {},
+                { originalError: error }
+            );
+        }
     },
 
     // Create a UserActiveOrganization entry or update the existing one

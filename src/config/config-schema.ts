@@ -13,4 +13,8 @@ export const ConfigSchema = z.object({
     JWT_SECRET: z.string().min(32),
 
     LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
+
+    GLOBAL_ORGANIZATION_ID: z.string().uuid().default('00000000-0000-0000-0000-000000000000'),
+    GLOBAL_ORGANANIZATION_SLUG: z.string().default('global-organization'),
+    GLOBAL_ORG_NAME: z.string().default('Global Organization'),
 });

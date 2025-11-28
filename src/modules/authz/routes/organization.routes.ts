@@ -20,7 +20,6 @@ import {
     type DeleteOrganizationMembershipRequestParams,
 } from '../dto/organization/delete-organization-membership.dto';
 import { UnauthorizedError } from '../../../errors/unauthorized-error';
-import { requireAuth } from '../../auth/auth-pre-handler.';
 import { ErrorMessages } from '../../../errors/error-messages';
 import {
     postActiveOrganizationRequestBodySchema,
@@ -34,6 +33,8 @@ import {
     type GetActiveOrganizationReply,
     type GetActiveOrganizationRequestParams,
 } from '../dto/organization/get-active-organization.dto';
+import { PermissionAction } from '../permission-action';
+import { PermissionResource } from '../permission-resource';
 
 export async function organizationRoutes(fastify: FastifyInstance) {
     fastify.get<{
@@ -46,9 +47,16 @@ export async function organizationRoutes(fastify: FastifyInstance) {
                 params: getOrganizationMembersRequestParamsSchema,
                 response: { 200: getOrganizationMembersResponseSchema200 },
             },
+            preHandler: [
+                fastify.requireAuth,
+                fastify.authz.userCan(
+                    PermissionAction.READ,
+                    PermissionResource.ORGANIZATION_MEMBERSHIP
+                ),
+            ],
         },
         async (request, reply) => {
-            const { organizationId } = request.params as { organizationId: string };
+            const { organizationId } = request.params;
             const members =
                 await fastify.authz.organizationMemberships.getOrganizationMembers(organizationId);
             return reply.code(200).sendWithDates(members);
@@ -67,10 +75,17 @@ export async function organizationRoutes(fastify: FastifyInstance) {
                 body: postOrganizationMembershipBodySchema,
                 response: { 201: postOrganizationMembershipResponseSchema201 },
             },
+            preHandler: [
+                fastify.requireAuth,
+                fastify.authz.userCan(
+                    PermissionAction.CREATE,
+                    PermissionResource.ORGANIZATION_MEMBERSHIP
+                ),
+            ],
         },
         async (request, reply) => {
-            const { organizationId } = request.params as { organizationId: string };
-            const { userId } = request.body as { userId: string };
+            const { organizationId } = request.params;
+            const { userId } = request.body;
             await fastify.authz.organizationMemberships.createOrganizationMembership(
                 organizationId,
                 userId
@@ -92,12 +107,17 @@ export async function organizationRoutes(fastify: FastifyInstance) {
                     204: deleteOrganizationMembershipResponseSchema204,
                 },
             },
+            preHandler: [
+                fastify.requireAuth,
+                fastify.authz.userCan(
+                    PermissionAction.DELETE,
+                    PermissionResource.ORGANIZATION_MEMBERSHIP
+                ),
+            ],
         },
         async (request, reply) => {
-            const { organizationId, userId } = request.params as {
-                organizationId: string;
-                userId: string;
-            };
+            const { organizationId, userId } = request.params;
+
             await fastify.authz.organizationMemberships.deleteOrganizationMembership(
                 organizationId,
                 userId
@@ -114,7 +134,7 @@ export async function organizationRoutes(fastify: FastifyInstance) {
                 params: getActiveOrganizationRequestParamsSchema,
                 response: { 200: getActiveOrganizationResponseSchema200 },
             },
-            preHandler: requireAuth,
+            preHandler: [fastify.requireAuth],
         },
         async (request, reply) => {
             const userId = request.session?.user.id;
@@ -124,7 +144,9 @@ export async function organizationRoutes(fastify: FastifyInstance) {
             }
 
             const organization =
-                await fastify.authz.organizationMemberships.getActiveOrganizationForUser(userId);
+                await fastify.authz.organizationMemberships.getActiveOrganizationForUserOrThrow(
+                    userId
+                );
 
             return reply.code(200).sendWithDates(organization);
         }
@@ -143,7 +165,7 @@ export async function organizationRoutes(fastify: FastifyInstance) {
                 body: postActiveOrganizationRequestBodySchema,
                 response: { 200: postActiveOrganizationResponseSchema200 },
             },
-            preHandler: requireAuth,
+            preHandler: [fastify.requireAuth],
         },
         async (request, reply) => {
             const { organizationId } = request.body;

@@ -4,10 +4,16 @@ meta {
   seq: 5
 }
 
-get {
+post {
   url: {{baseUrl}}/api/authz/organizations/active
-  body: none
+  body: json
   auth: inherit
+}
+
+body:json {
+  {
+    "organizationId": "{{devOrgId}}"
+  }
 }
 
 settings {
