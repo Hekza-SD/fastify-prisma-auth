@@ -9,16 +9,6 @@ export const globalOrganizationPermissions: {
     scope: PermissionScope;
 }[] = [
     {
-        action: PermissionAction.READ,
-        resource: PermissionResource.SYSTEM_STATS,
-        scope: PermissionScope.GLOBAL,
-    },
-    {
-        action: PermissionAction.READ,
-        resource: PermissionResource.SYSTEM_SETTINGS,
-        scope: PermissionScope.GLOBAL,
-    },
-    {
         action: PermissionAction.BYPASS,
         resource: PermissionResource.ORGANIZATION_MEMBERSHIP,
         scope: PermissionScope.GLOBAL,
@@ -73,11 +63,6 @@ export const organizationPermissions: {
     {
         action: PermissionAction.UPDATE,
         resource: PermissionResource.ORGANIZATION_ROLES,
-        scope: PermissionScope.ORGANIZATION,
-    },
-    {
-        action: PermissionAction.UPDATE,
-        resource: PermissionResource.ACTIVE_ORGANIZATION,
         scope: PermissionScope.ORGANIZATION,
     },
 ];
