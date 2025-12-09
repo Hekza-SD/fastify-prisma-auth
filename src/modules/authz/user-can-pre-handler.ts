@@ -55,7 +55,27 @@ export const userCan =
         ).id;
         req.activeOrganizationId = activeOrganizationId;
 
+        const auditLog = async (
+            allowed: boolean,
+            action: PermissionAction,
+            resource: PermissionResource
+        ) => {
+            await req.server.authz.accessAuditLogs.createAccessAuditLog(
+                action,
+                resource,
+                allowed,
+                userId,
+                activeOrganizationId,
+                undefined,
+                { query: req.query, params: req.params }
+            );
+        };
+
         for (const { action, resource, scope, forceActiveOrganization } of options) {
+            const orgId = forceActiveOrganization
+                ? activeOrganizationId
+                : (organizationId ?? activeOrganizationId);
+
             if (scope === PermissionScope.GLOBAL) {
                 const hasGlobalPermission =
                     await req.server.authz.permissions.userHasGlobalPermission(
@@ -65,21 +85,23 @@ export const userCan =
                     );
 
                 if (hasGlobalPermission) {
+                    await auditLog(true, action, resource);
                     return;
                 }
 
+                await auditLog(false, action, resource);
                 continue;
             }
+
             const hasPermission = await req.server.authz.permissions.userHasPermission(
                 userId,
-                forceActiveOrganization
-                    ? activeOrganizationId
-                    : (organizationId ?? activeOrganizationId),
+                orgId,
                 action,
                 resource
             );
 
             if (hasPermission) {
+                await auditLog(true, action, resource);
                 return;
             }
 
@@ -90,9 +112,14 @@ export const userCan =
             );
 
             if (hasGlobalPermission) {
+                await auditLog(true, action, resource);
                 return;
             }
+
+            // Not granted for this option → log denied
+            await auditLog(false, action, resource);
         }
 
+        // None of the permissions allowed → denied
         throw new UnauthorizedError(ErrorMessages.FORBIDDEN);
     };
