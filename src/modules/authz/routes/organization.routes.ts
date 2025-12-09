@@ -36,6 +36,15 @@ import {
 import { PermissionAction } from '../permission-action';
 import { PermissionResource } from '../permission-resource';
 
+/**
+ * APIs registered
+ * - Get active organization members
+ * - Add organization member
+ * - Remove organization member
+ * - Get active organization
+ * - Set active organization
+ */
+
 export async function organizationRoutes(fastify: FastifyInstance) {
     fastify.get<{
         Params: GetOrganizationMembersRequestParams;

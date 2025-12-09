@@ -1,7 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { NotImplementedError } from '../../../errors/not-implemented.error';
 import { UnauthorizedError } from '../../../errors/unauthorized-error';
-import { ErrorMessages } from '../../../errors/error-messages';
 import {
     getHasPermissionQueryStringSchema,
     getHasPermissionResponseSchema200,
@@ -10,6 +9,13 @@ import {
 } from '../dto/permissions/get-has-permission';
 import { PermissionAction } from '../permission-action';
 import { PermissionResource } from '../permission-resource';
+
+/**
+ * APIs registered
+ * - Get all permissions for the active organization
+ * - Search through permissions of the active organization (not implemented)
+ * - Get if the authenticated user has a specific permission
+ */
 
 export async function permissionsRoutes(fastify: FastifyInstance) {
     /**

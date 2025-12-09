@@ -8,5 +8,7 @@ export enum PermissionResource {
     ROLE_PERMISSIONS = 'ROLE_PERMISSIONS',
     PERMISSIONS = 'PERMISSIONS',
 
+    ACCESS_AUDIT_LOGS = 'ACCESS_AUDIT_LOGS',
+
     // Global resources
 }

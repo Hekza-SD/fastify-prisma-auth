@@ -78,6 +78,21 @@ import { UnauthorizedError } from '../../../errors/unauthorized-error';
 import { ErrorMessages } from '../../../errors/error-messages';
 import { PermissionScope } from '../permission-scope';
 
+/**
+ * APIs registered
+ * - Get all roles for active organization
+ * - Create role for active organization
+ * - Delete role from active organization
+ * - Get role by ID
+ * - Patch role
+ * - Get role members
+ * - Add role membership
+ * - Delete role membership
+ * - Get role permissions
+ * - Add role permission
+ * - Delete role permission
+ */
+
 export async function rolesRoutes(fastify: FastifyInstance) {
     // Get all roles for an organization
     fastify.get<{ Querystring: GetRolesQueryString; Reply: GetRolesReply }>(

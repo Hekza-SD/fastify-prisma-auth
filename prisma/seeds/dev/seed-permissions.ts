@@ -65,6 +65,11 @@ export const organizationPermissions: {
         resource: PermissionResource.ORGANIZATION_ROLES,
         scope: PermissionScope.ORGANIZATION,
     },
+    {
+        action: PermissionAction.READ,
+        resource: PermissionResource.ACCESS_AUDIT_LOGS,
+        scope: PermissionScope.ORGANIZATION,
+    },
 ];
 
 export async function seedPermissions(prisma: PrismaClient) {

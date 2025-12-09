@@ -4,10 +4,12 @@ import { UnauthorizedError } from '../../errors/unauthorized-error';
 import { ErrorMessages } from '../../errors/error-messages';
 import type { PermissionAction } from './permission-action';
 import type { PermissionResource } from './permission-resource';
+import { PermissionScope } from './permission-scope';
 
 export type UserCanOptions = {
     action: PermissionAction;
     resource: PermissionResource;
+    scope?: PermissionScope;
 
     // Specifies to use the organization of the user's active membership,
     // ignoring any organizationId in the request
@@ -53,7 +55,21 @@ export const userCan =
         ).id;
         req.activeOrganizationId = activeOrganizationId;
 
-        for (const { action, resource, forceActiveOrganization } of options) {
+        for (const { action, resource, scope, forceActiveOrganization } of options) {
+            if (scope === PermissionScope.GLOBAL) {
+                const hasGlobalPermission =
+                    await req.server.authz.permissions.userHasGlobalPermission(
+                        userId,
+                        action,
+                        resource
+                    );
+
+                if (hasGlobalPermission) {
+                    return;
+                }
+
+                continue;
+            }
             const hasPermission = await req.server.authz.permissions.userHasPermission(
                 userId,
                 forceActiveOrganization

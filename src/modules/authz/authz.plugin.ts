@@ -7,6 +7,7 @@ import { createRolePermissionService } from './services/role-permission.service'
 import { createOrganizationMembershipService } from './services/organization-membership.service';
 import { userCan } from './user-can-pre-handler';
 import { requireOrgMembership } from './org-membership-pre-handler';
+import { createAccessAuditLogService } from './services/access-audit-log.service';
 
 async function authzPlugin(fastify: FastifyInstance) {
     fastify.decorate('authz', {
@@ -17,6 +18,7 @@ async function authzPlugin(fastify: FastifyInstance) {
         roleMemberships: createRoleMembershipService(fastify),
         rolePermissions: createRolePermissionService(fastify),
         organizationMemberships: createOrganizationMembershipService(fastify),
+        accessAuditLogs: createAccessAuditLogService(fastify),
     });
 }
 
@@ -30,6 +32,7 @@ declare module 'fastify' {
             roleMemberships: ReturnType<typeof createRoleMembershipService>;
             rolePermissions: ReturnType<typeof createRolePermissionService>;
             organizationMemberships: ReturnType<typeof createOrganizationMembershipService>;
+            accessAuditLogs: ReturnType<typeof createAccessAuditLogService>;
         };
     }
 

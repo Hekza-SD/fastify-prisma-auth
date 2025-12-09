@@ -92,6 +92,7 @@ model Organization {
   users       OrganizationMembership[]
   roles       Role[]
   userActiveOrganizations UserActiveOrganization[]
+  accessAuditLogs AccessAuditLog[]
 
   @@schema("authz")
 }
@@ -177,6 +178,7 @@ enum PermissionResource {
   ROLE_MEMBERSHIPS
   ROLE_PERMISSIONS
   PERMISSIONS
+  ACCESS_AUDIT_LOGS
   @@schema("authz")
 }
 
@@ -245,15 +247,18 @@ model UserActiveOrganization {
 
 model AccessAuditLog {
   id          Int   @id @default(autoincrement())
-  userId     String?
-  action     String
-  resource   String?
+  userId     String
+  organizationId String
+  action     PermissionAction
+  resource   PermissionResource
   resourceId String?
   allowed    Boolean
   context    Json?
   createdAt  DateTime @default(now())
 
-  user User? @relation(fields:[userId], references:[id])
+  user User @relation(fields:[userId], references:[id])
+  organization Organization @relation(fields:[organizationId], references:[id])
+
 
   @@schema("audit")
 }
