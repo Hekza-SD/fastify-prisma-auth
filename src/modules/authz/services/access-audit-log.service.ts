@@ -51,7 +51,7 @@ export const createAccessAuditLogService = (fastify: FastifyInstance) => ({
         }
 
         if (filter.limit) {
-            where.take = Math.min(filter.limit, 100);
+            where.take = filter.limit;
         }
 
         if (filter.offset) {

@@ -1,0 +1,28 @@
+meta {
+  name: search
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/authz/audit/access-logs?userId&action&resource&allowed&fromDate&toDate&createdAtOrder&limit=1&offset
+  body: none
+  auth: inherit
+}
+
+params:query {
+  userId: 
+  action: 
+  resource: 
+  allowed: 
+  fromDate: 
+  toDate: 
+  createdAtOrder: 
+  limit: 1
+  offset: 
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

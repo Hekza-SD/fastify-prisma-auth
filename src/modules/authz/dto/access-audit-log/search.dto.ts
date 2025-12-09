@@ -12,7 +12,7 @@ export const searchAccessAuditLogsRequestQuerySchema = {
         fromDate: { type: 'string', format: 'date-time' },
         toDate: { type: 'string', format: 'date-time' },
         createdAtOrder: { type: 'string', enum: ['asc', 'desc'] },
-        limit: { type: 'integer', minimum: 1 },
+        limit: { type: 'integer', minimum: 1, maximum: 100 },
         offset: { type: 'integer', minimum: 0 },
     },
     required: [],
