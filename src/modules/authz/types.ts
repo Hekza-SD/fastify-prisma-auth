@@ -1,8 +1,3 @@
-export enum Permissions {
-    READ_GLOBAL_ROLES = 'read:global:roles',
-    READ_ORG_ROLES = 'read:org:roles',
-}
-
 export interface AuthzModuleOptions {
     prefix?: string;
     adminPrefix?: string;

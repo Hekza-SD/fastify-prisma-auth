@@ -165,20 +165,18 @@ enum PermissionAction {
   READ
   UPDATE
   DELETE
+  BYPASS
   @@schema("authz")
 }
 
 // Must match the PermissionResource typescript enum
 enum PermissionResource {
-  USER
-  ORGANIZATION
+  ACTIVE_ORGANIZATION
   ORGANIZATION_MEMBERSHIP
-  ROLE
-  PERMISSION
-  POLICY
-  SESSION
-  ACCOUNT
-  AUDIT_LOG
+  ORGANIZATION_ROLES
+  ROLE_MEMBERSHIPS
+  ROLE_PERMISSIONS
+  PERMISSIONS
   @@schema("authz")
 }
 

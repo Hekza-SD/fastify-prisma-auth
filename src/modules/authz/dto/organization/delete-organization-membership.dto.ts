@@ -3,10 +3,9 @@ import type { FromSchema } from 'json-schema-to-ts';
 export const deleteOrganizationMembershipRequestParamsSchema = {
     type: 'object',
     properties: {
-        organizationId: { type: 'string' },
         userId: { type: 'string' },
     },
-    required: ['organizationId', 'userId'],
+    required: ['userId'],
 } as const;
 
 export const deleteOrganizationMembershipResponseSchema204 = {

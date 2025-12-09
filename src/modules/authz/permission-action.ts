@@ -3,4 +3,5 @@ export enum PermissionAction {
     READ = 'READ',
     UPDATE = 'UPDATE',
     DELETE = 'DELETE',
+    BYPASS = 'BYPASS',
 }

@@ -1,42 +1,49 @@
 import type { FastifyInstance } from 'fastify';
-import {
-    getPermissionByIdParamSchema,
-    getPermissionByIdResponseSchema200,
-    type GetPermissionByIdParams,
-    type GetPermissionByIdReply,
-} from '../dto/permissions/get-by-id';
 import { NotImplementedError } from '../../../errors/not-implemented.error';
 import { UnauthorizedError } from '../../../errors/unauthorized-error';
 import { ErrorMessages } from '../../../errors/error-messages';
-import { requireAuth } from '../../auth/auth-pre-handler.';
 import {
     getHasPermissionQueryStringSchema,
     getHasPermissionResponseSchema200,
     type GetHasPermissionQueryString,
     type GetHasPermissionReply,
 } from '../dto/permissions/get-has-permission';
+import { PermissionAction } from '../permission-action';
+import { PermissionResource } from '../permission-resource';
 
 export async function permissionsRoutes(fastify: FastifyInstance) {
-    fastify.get('/permissions', async (request, reply) => {
-        return await fastify.authz.permissions.getPermissions();
-    });
-
-    fastify.get<{ Params: GetPermissionByIdParams; Reply: GetPermissionByIdReply }>(
-        '/permissions/:permissionId',
+    /**
+     * Get all permissions for the active organization
+     */
+    fastify.get(
+        '/permissions',
         {
-            schema: {
-                params: getPermissionByIdParamSchema,
-                response: { 200: getPermissionByIdResponseSchema200 },
-            },
+            preHandler: [
+                fastify.requireAuth,
+                fastify.authz.userCan([
+                    {
+                        action: PermissionAction.READ,
+                        resource: PermissionResource.PERMISSIONS,
+                    },
+                ]),
+            ],
         },
-        async (request, reply) => {
-            const permission = await fastify.authz.permissions.getPermissionById(
-                request.params.permissionId
-            );
-            return reply.code(200).sendWithDates(permission);
+        async (request, _reply) => {
+            const activeOrganizationId =
+                request.activeOrganizationId ??
+                (
+                    await fastify.authz.organizationMemberships.getActiveOrganizationForUserOrThrow(
+                        request.session!.user.id
+                    )
+                ).id;
+
+            return await fastify.authz.permissions.getPermissions(activeOrganizationId);
         }
     );
 
+    /**
+     * Search through permissions of the active organization (not implemented)
+     */
     fastify.get('/permissions/search', async (request, reply) => {
         throw new NotImplementedError();
     });
@@ -48,30 +55,20 @@ export async function permissionsRoutes(fastify: FastifyInstance) {
                 querystring: getHasPermissionQueryStringSchema,
                 response: { 200: getHasPermissionResponseSchema200 },
             },
-            preHandler: [requireAuth],
+            preHandler: [fastify.requireAuth],
         },
         async (request, reply) => {
             const { action, resource } = request.query;
-            const userId = request.session?.user.id;
 
-            if (!userId) {
-                throw new UnauthorizedError(ErrorMessages.UNAUTHENTICATED);
+            try {
+                fastify.authz.userCan([{ action: action, resource: resource }]);
+                return reply.code(200).send({ hasPermission: true });
+            } catch (e) {
+                if (e instanceof UnauthorizedError) {
+                    return reply.code(200).send({ hasPermission: false });
+                }
+                throw e;
             }
-
-            const organizationId =
-                await fastify.authz.organizationMemberships.getActiveOrganizationForUserOrThrow(
-                    userId
-                );
-
-            const hasPermission =
-                await fastify.authz.permissions.userHasPermissionInActiveOrganization(
-                    userId,
-                    organizationId.id,
-                    action,
-                    resource
-                );
-
-            return reply.code(200).send({ hasPermission });
         }
     );
 }

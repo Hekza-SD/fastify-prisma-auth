@@ -11,7 +11,7 @@ CREATE SCHEMA IF NOT EXISTS "core";
 CREATE TYPE "authz"."PermissionAction" AS ENUM ('CREATE', 'READ', 'UPDATE', 'DELETE');
 
 -- CreateEnum
-CREATE TYPE "authz"."PermissionResource" AS ENUM ('USER', 'ORGANIZATION', 'ROLE', 'PERMISSION', 'POLICY', 'SESSION', 'ACCOUNT', 'AUDIT_LOG');
+CREATE TYPE "authz"."PermissionResource" AS ENUM ('SYSTEM_STATS', 'SYSTEM_SETTINGS', 'SYSTEM_LOGS', 'GLOBAL_USERS', 'GLOBAL_ORGANIZATIONS', 'BACKOFFICE_ACCESS', 'ORGANIZATION_MEMBERSHIP');
 
 -- CreateEnum
 CREATE TYPE "authz"."PermissionScope" AS ENUM ('GLOBAL', 'ORGANIZATION');
@@ -161,6 +161,14 @@ CREATE TABLE "authz"."RoleMembership" (
 );
 
 -- CreateTable
+CREATE TABLE "authz"."user_active_organization" (
+    "userId" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
+
+    CONSTRAINT "user_active_organization_pkey" PRIMARY KEY ("userId")
+);
+
+-- CreateTable
 CREATE TABLE "audit"."AccessAuditLog" (
     "id" SERIAL NOT NULL,
     "userId" TEXT,
@@ -204,6 +212,9 @@ CREATE UNIQUE INDEX "RolePermission_roleId_permissionId_key" ON "authz"."RolePer
 -- CreateIndex
 CREATE UNIQUE INDEX "RoleMembership_userId_roleId_key" ON "authz"."RoleMembership"("userId", "roleId");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "user_active_organization_userId_organizationId_key" ON "authz"."user_active_organization"("userId", "organizationId");
+
 -- AddForeignKey
 ALTER TABLE "core"."session" ADD CONSTRAINT "session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "core"."user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -239,6 +250,12 @@ ALTER TABLE "authz"."RoleMembership" ADD CONSTRAINT "RoleMembership_userId_fkey"
 
 -- AddForeignKey
 ALTER TABLE "authz"."RoleMembership" ADD CONSTRAINT "RoleMembership_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "authz"."Role"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "authz"."user_active_organization" ADD CONSTRAINT "user_active_organization_userId_fkey" FOREIGN KEY ("userId") REFERENCES "core"."user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "authz"."user_active_organization" ADD CONSTRAINT "user_active_organization_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "authz"."Organization"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "audit"."AccessAuditLog" ADD CONSTRAINT "AccessAuditLog_userId_fkey" FOREIGN KEY ("userId") REFERENCES "core"."user"("id") ON DELETE SET NULL ON UPDATE CASCADE;

@@ -1,5 +1,7 @@
 import type { FromSchema } from 'json-schema-to-ts';
 
+// Not currently used, but defined for consistency and future use
+
 export const getPermissionByIdParamSchema = {
     type: 'object',
     properties: {

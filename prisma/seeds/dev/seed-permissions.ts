@@ -3,24 +3,88 @@ import { PermissionAction } from '../../../src/modules/authz/permission-action';
 import { PermissionResource } from '../../../src/modules/authz/permission-resource';
 import { PermissionScope } from '../../../src/modules/authz/permission-scope';
 
-const permissions = () => {
-    const perms = [];
-    for (const actionKey in PermissionAction) {
-        const action = PermissionAction[actionKey as keyof typeof PermissionAction];
-        for (const resourceKey in PermissionResource) {
-            const resource = PermissionResource[resourceKey as keyof typeof PermissionResource];
-            for (const scopeKey in PermissionScope) {
-                const scope = PermissionScope[scopeKey as keyof typeof PermissionScope];
-                perms.push({ action, resource, scope });
-            }
-        }
-    }
-    return perms;
-};
+export const globalOrganizationPermissions: {
+    action: PermissionAction;
+    resource: PermissionResource;
+    scope: PermissionScope;
+}[] = [
+    {
+        action: PermissionAction.READ,
+        resource: PermissionResource.SYSTEM_STATS,
+        scope: PermissionScope.GLOBAL,
+    },
+    {
+        action: PermissionAction.READ,
+        resource: PermissionResource.SYSTEM_SETTINGS,
+        scope: PermissionScope.GLOBAL,
+    },
+    {
+        action: PermissionAction.BYPASS,
+        resource: PermissionResource.ORGANIZATION_MEMBERSHIP,
+        scope: PermissionScope.GLOBAL,
+    },
+    {
+        action: PermissionAction.BYPASS,
+        resource: PermissionResource.ORGANIZATION_MEMBERSHIP,
+        scope: PermissionScope.GLOBAL,
+    },
+];
+
+export const organizationPermissions: {
+    action: PermissionAction;
+    resource: PermissionResource;
+    scope: PermissionScope;
+}[] = [
+    {
+        action: PermissionAction.READ,
+        resource: PermissionResource.PERMISSIONS,
+        scope: PermissionScope.ORGANIZATION,
+    },
+    {
+        action: PermissionAction.READ,
+        resource: PermissionResource.ORGANIZATION_MEMBERSHIP,
+        scope: PermissionScope.ORGANIZATION,
+    },
+    {
+        action: PermissionAction.CREATE,
+        resource: PermissionResource.ORGANIZATION_MEMBERSHIP,
+        scope: PermissionScope.ORGANIZATION,
+    },
+    {
+        action: PermissionAction.DELETE,
+        resource: PermissionResource.ORGANIZATION_MEMBERSHIP,
+        scope: PermissionScope.ORGANIZATION,
+    },
+    {
+        action: PermissionAction.DELETE,
+        resource: PermissionResource.ORGANIZATION_ROLES,
+        scope: PermissionScope.ORGANIZATION,
+    },
+    {
+        action: PermissionAction.READ,
+        resource: PermissionResource.PERMISSIONS,
+        scope: PermissionScope.ORGANIZATION,
+    },
+    {
+        action: PermissionAction.READ,
+        resource: PermissionResource.ORGANIZATION_ROLES,
+        scope: PermissionScope.ORGANIZATION,
+    },
+    {
+        action: PermissionAction.UPDATE,
+        resource: PermissionResource.ORGANIZATION_ROLES,
+        scope: PermissionScope.ORGANIZATION,
+    },
+    {
+        action: PermissionAction.UPDATE,
+        resource: PermissionResource.ACTIVE_ORGANIZATION,
+        scope: PermissionScope.ORGANIZATION,
+    },
+];
 
 export async function seedPermissions(prisma: PrismaClient) {
     console.log('Seeding permissions...');
-    for (const { action, resource, scope } of permissions()) {
+    for (const { action, resource, scope } of globalOrganizationPermissions) {
         await prisma.permission.upsert({
             where: { action_resource: { action, resource } },
             update: {},
@@ -31,5 +95,18 @@ export async function seedPermissions(prisma: PrismaClient) {
             },
         });
     }
+
+    for (const { action, resource, scope } of organizationPermissions) {
+        await prisma.permission.upsert({
+            where: { action_resource: { action, resource } },
+            update: {},
+            create: {
+                action: action,
+                resource: resource,
+                scope: scope,
+            },
+        });
+    }
+
     console.log('Permissions seeded.');
 }

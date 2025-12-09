@@ -3,11 +3,10 @@ import type { FromSchema } from 'json-schema-to-ts';
 export const postRoleRequestBodySchema = {
     type: 'object',
     properties: {
-        organizationId: { type: 'string' },
         name: { type: 'string' },
         description: { type: ['string'] },
     },
-    required: ['organizationId', 'name', 'description'],
+    required: ['name', 'description'],
 } as const;
 
 export const postRoleResponseSchema200 = {

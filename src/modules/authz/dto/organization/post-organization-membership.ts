@@ -2,10 +2,8 @@ import type { FromSchema } from 'json-schema-to-ts';
 
 export const postOrganizationMembershipParamsSchema = {
     type: 'object',
-    properties: {
-        organizationId: { type: 'string' },
-    },
-    required: ['organizationId'],
+    properties: {},
+    required: [],
 } as const;
 
 export const postOrganizationMembershipBodySchema = {

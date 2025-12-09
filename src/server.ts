@@ -8,6 +8,7 @@ import { configPlugin } from './plugins/config';
 
 export async function buildApp() {
     const app = Fastify({ logger: loggerOptions });
+
     app.register(configPlugin); // Load config first
 
     await registerGlobalPlugins(app);

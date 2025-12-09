@@ -13,6 +13,8 @@ export type UserCanOptions = {
     // ignoring any organizationId in the request
     // Useful for routes that takes an organizationId but for which the
     // permission check should always be done on the active organization instead
+    // It also prevents organizationId tampering by the client
+    // True by default in such cases
     forceActiveOrganization?: boolean;
 }[];
 
@@ -24,6 +26,13 @@ export type UserCanOptions = {
  */
 export const userCan =
     (options: UserCanOptions) => async (req: FastifyRequest, _res: FastifyReply) => {
+        // By default, force using active organization for all options
+        options.map((option) => {
+            if (!option.forceActiveOrganization) {
+                option.forceActiveOrganization = true;
+            }
+        });
+
         const userId = req.session?.user.id;
 
         if (!userId) {
@@ -42,6 +51,7 @@ export const userCan =
                 userId
             )
         ).id;
+        req.activeOrganizationId = activeOrganizationId;
 
         for (const { action, resource, forceActiveOrganization } of options) {
             const hasPermission = await req.server.authz.permissions.userHasPermission(

@@ -49,16 +49,32 @@ export async function organizationRoutes(fastify: FastifyInstance) {
             },
             preHandler: [
                 fastify.requireAuth,
-                fastify.authz.userCan(
-                    PermissionAction.READ,
-                    PermissionResource.ORGANIZATION_MEMBERSHIP
-                ),
+                fastify.authz.userCan([
+                    {
+                        action: PermissionAction.READ,
+                        resource: PermissionResource.ORGANIZATION_MEMBERSHIP,
+                    },
+                ]),
             ],
         },
         async (request, reply) => {
-            const { organizationId } = request.params;
+            const userId = request.session?.user.id;
+            if (!userId) {
+                throw new UnauthorizedError(ErrorMessages.UNAUTHENTICATED);
+            }
+
+            const activeOrganizationId =
+                request.activeOrganizationId ??
+                (
+                    await fastify.authz.organizationMemberships.getActiveOrganizationForUserOrThrow(
+                        userId
+                    )
+                ).id;
+
             const members =
-                await fastify.authz.organizationMemberships.getOrganizationMembers(organizationId);
+                await fastify.authz.organizationMemberships.getOrganizationMembers(
+                    activeOrganizationId
+                );
             return reply.code(200).sendWithDates(members);
         }
     );
@@ -77,17 +93,31 @@ export async function organizationRoutes(fastify: FastifyInstance) {
             },
             preHandler: [
                 fastify.requireAuth,
-                fastify.authz.userCan(
-                    PermissionAction.CREATE,
-                    PermissionResource.ORGANIZATION_MEMBERSHIP
-                ),
+                fastify.authz.userCan([
+                    {
+                        action: PermissionAction.CREATE,
+                        resource: PermissionResource.ORGANIZATION_MEMBERSHIP,
+                    },
+                ]),
             ],
         },
         async (request, reply) => {
-            const { organizationId } = request.params;
             const { userId } = request.body;
+
+            const user = request.session?.user;
+            if (!user) {
+                throw new UnauthorizedError(ErrorMessages.UNAUTHENTICATED);
+            }
+            const activeOrganizationId =
+                request.activeOrganizationId ??
+                (
+                    await fastify.authz.organizationMemberships.getActiveOrganizationForUserOrThrow(
+                        user.id
+                    )
+                ).id;
+
             await fastify.authz.organizationMemberships.createOrganizationMembership(
-                organizationId,
+                activeOrganizationId,
                 userId
             );
 
@@ -109,17 +139,31 @@ export async function organizationRoutes(fastify: FastifyInstance) {
             },
             preHandler: [
                 fastify.requireAuth,
-                fastify.authz.userCan(
-                    PermissionAction.DELETE,
-                    PermissionResource.ORGANIZATION_MEMBERSHIP
-                ),
+                fastify.authz.userCan([
+                    {
+                        action: PermissionAction.DELETE,
+                        resource: PermissionResource.ORGANIZATION_MEMBERSHIP,
+                    },
+                ]),
             ],
         },
         async (request, reply) => {
-            const { organizationId, userId } = request.params;
+            const { userId } = request.params;
+
+            const user = request.session?.user;
+            if (!user) {
+                throw new UnauthorizedError(ErrorMessages.UNAUTHENTICATED);
+            }
+            const activeOrganizationId =
+                request.activeOrganizationId ??
+                (
+                    await fastify.authz.organizationMemberships.getActiveOrganizationForUserOrThrow(
+                        user.id
+                    )
+                ).id;
 
             await fastify.authz.organizationMemberships.deleteOrganizationMembership(
-                organizationId,
+                activeOrganizationId,
                 userId
             );
 
@@ -153,7 +197,7 @@ export async function organizationRoutes(fastify: FastifyInstance) {
     );
 
     /**
-     * Set active organization for user if the user is a member of the organization
+     * Set the active organization for the connected user.
      */
     fastify.post<{
         Body: PostActiveOrganizationRequestBody;
@@ -165,20 +209,16 @@ export async function organizationRoutes(fastify: FastifyInstance) {
                 body: postActiveOrganizationRequestBodySchema,
                 response: { 200: postActiveOrganizationResponseSchema200 },
             },
-            preHandler: [fastify.requireAuth],
+            preHandler: [fastify.requireAuth, fastify.authz.requireOrgMembership],
         },
         async (request, reply) => {
             const { organizationId } = request.body;
+
             const userId = request.session?.user.id;
 
             if (!userId) {
                 throw new UnauthorizedError(ErrorMessages.UNAUTHENTICATED);
             }
-
-            await fastify.authz.organizationMemberships.isUserMemberOfOrganizationOrThrow(
-                userId,
-                organizationId
-            );
 
             await fastify.authz.organizationMemberships.setActiveOrganizationForUser(
                 userId,

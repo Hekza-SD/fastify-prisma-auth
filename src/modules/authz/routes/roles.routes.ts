@@ -72,6 +72,11 @@ import {
     type DeleteRolePermissionReply,
     type DeleteRolePermissionRequestParams,
 } from '../dto/roles/delete-role-permission.dto';
+import { PermissionAction } from '../permission-action';
+import { PermissionResource } from '../permission-resource';
+import { UnauthorizedError } from '../../../errors/unauthorized-error';
+import { ErrorMessages } from '../../../errors/error-messages';
+import { PermissionScope } from '../permission-scope';
 
 export async function rolesRoutes(fastify: FastifyInstance) {
     // Get all roles for an organization
@@ -84,10 +89,32 @@ export async function rolesRoutes(fastify: FastifyInstance) {
                     200: getRolesResponseSchema200,
                 },
             },
+            preHandler: [
+                fastify.requireAuth,
+                fastify.authz.userCan([
+                    {
+                        action: PermissionAction.READ,
+                        resource: PermissionResource.ORGANIZATION_ROLES,
+                    },
+                ]),
+            ],
         },
         async (request, reply) => {
-            const { organizationId } = request.query;
-            const roles = await fastify.authz.roles.getRoles(organizationId);
+            const userId = request.session?.user.id;
+
+            if (!userId) {
+                throw new UnauthorizedError(ErrorMessages.UNAUTHENTICATED);
+            }
+
+            const organizationId =
+                request.activeOrganizationId ??
+                (
+                    await fastify.authz.organizationMemberships.getActiveOrganizationForUserOrThrow(
+                        userId
+                    )
+                ).id;
+
+            const roles = await fastify.authz.roles.getRolesForOrganization(organizationId);
             return reply.code(200).sendWithDates(roles);
         }
     );
@@ -102,9 +129,33 @@ export async function rolesRoutes(fastify: FastifyInstance) {
                     200: postRoleResponseSchema200,
                 },
             },
+            preHandler: [
+                fastify.requireAuth,
+                fastify.authz.userCan([
+                    {
+                        action: PermissionAction.CREATE,
+                        resource: PermissionResource.ORGANIZATION_ROLES,
+                    },
+                ]),
+            ],
         },
         async (request, reply) => {
-            const { organizationId, name, description } = request.body;
+            const { name, description } = request.body;
+
+            const userId = request.session?.user.id;
+
+            if (!userId) {
+                throw new UnauthorizedError(ErrorMessages.UNAUTHENTICATED);
+            }
+
+            const organizationId =
+                request.activeOrganizationId ??
+                (
+                    await fastify.authz.organizationMemberships.getActiveOrganizationForUserOrThrow(
+                        userId
+                    )
+                ).id;
+
             const role = await fastify.authz.roles.createRole(organizationId, name, description);
             return reply.code(200).sendWithDates(role);
         }
@@ -118,10 +169,34 @@ export async function rolesRoutes(fastify: FastifyInstance) {
                 params: deleteRoleRequestParamsSchema,
                 response: { 204: deleteRoleResponseSchema204 },
             },
+            preHandler: [
+                fastify.requireAuth,
+                fastify.authz.userCan([
+                    {
+                        action: PermissionAction.DELETE,
+                        resource: PermissionResource.ORGANIZATION_ROLES,
+                    },
+                ]),
+            ],
         },
         async (request, reply) => {
             const { roleId } = request.params;
-            await fastify.authz.roles.deleteRole(roleId);
+
+            const userId = request.session?.user.id;
+
+            if (!userId) {
+                throw new UnauthorizedError(ErrorMessages.UNAUTHENTICATED);
+            }
+
+            const organizationId =
+                request.activeOrganizationId ??
+                (
+                    await fastify.authz.organizationMemberships.getActiveOrganizationForUserOrThrow(
+                        userId
+                    )
+                ).id;
+
+            await fastify.authz.roles.deleteRoleForOrganization(organizationId, roleId);
             return reply.code(204).send();
         }
     );
@@ -136,11 +211,36 @@ export async function rolesRoutes(fastify: FastifyInstance) {
                     200: getRoleByIdResponseSchema200,
                 },
             },
+            preHandler: [
+                fastify.requireAuth,
+                fastify.authz.userCan([
+                    {
+                        action: PermissionAction.READ,
+                        resource: PermissionResource.ORGANIZATION_ROLES,
+                    },
+                ]),
+            ],
         },
         async (request, reply) => {
             const { roleId } = request.params;
+            const userId = request.session?.user.id;
 
-            const role = await fastify.authz.roles.getRoleByIdOrThrow(roleId);
+            if (!userId) {
+                throw new UnauthorizedError(ErrorMessages.UNAUTHENTICATED);
+            }
+
+            const activeOrganizationId =
+                request.activeOrganizationId ??
+                (
+                    await fastify.authz.organizationMemberships.getActiveOrganizationForUserOrThrow(
+                        userId
+                    )
+                ).id;
+
+            const role = await fastify.authz.roles.getRoleByIdAndOrganizationIdOrThrow(
+                roleId,
+                activeOrganizationId
+            );
 
             return reply.code(200).sendWithDates(role);
         }
@@ -161,10 +261,38 @@ export async function rolesRoutes(fastify: FastifyInstance) {
                     204: patchRoleResponseSchema204,
                 },
             },
+            preHandler: [
+                fastify.requireAuth,
+                fastify.authz.userCan([
+                    {
+                        action: PermissionAction.UPDATE,
+                        resource: PermissionResource.ORGANIZATION_ROLES,
+                    },
+                ]),
+            ],
         },
         async (request, reply) => {
             const { roleId } = request.params;
             const { name, description } = request.body;
+
+            const userId = request.session?.user.id;
+            if (!userId) {
+                throw new UnauthorizedError(ErrorMessages.UNAUTHENTICATED);
+            }
+
+            // Verify that the role belongs to the user's active organization
+            const activeOrganizationId =
+                request.activeOrganizationId ??
+                (
+                    await fastify.authz.organizationMemberships.getActiveOrganizationForUserOrThrow(
+                        userId
+                    )
+                ).id;
+
+            await fastify.authz.roles.getRoleByIdAndOrganizationIdOrThrow(
+                roleId,
+                activeOrganizationId
+            );
 
             await fastify.authz.roles.patchRole(roleId, name, description);
 
@@ -181,10 +309,36 @@ export async function rolesRoutes(fastify: FastifyInstance) {
                     200: getRoleMembersResponseSchema200,
                 },
             },
+            preHandler: [
+                fastify.requireAuth,
+                fastify.authz.userCan([
+                    {
+                        action: PermissionAction.READ,
+                        resource: PermissionResource.ROLE_MEMBERSHIPS,
+                    },
+                ]),
+            ],
         },
         async (request, reply) => {
-            const { roleId } = request.params as { roleId: number };
-            const members = await fastify.authz.roleMemberships.getRoleMembers(roleId);
+            const { roleId } = request.params;
+            const userId = request.session?.user.id;
+
+            if (!userId) {
+                throw new UnauthorizedError(ErrorMessages.UNAUTHENTICATED);
+            }
+
+            const activeOrganizationId =
+                request.activeOrganizationId ??
+                (
+                    await fastify.authz.organizationMemberships.getActiveOrganizationForUserOrThrow(
+                        userId
+                    )
+                ).id;
+
+            const members = await fastify.authz.roleMemberships.getRoleMembersForOrganization(
+                roleId,
+                activeOrganizationId
+            );
             return reply.code(200).sendWithDates(members);
         }
     );
@@ -203,10 +357,45 @@ export async function rolesRoutes(fastify: FastifyInstance) {
                     201: postRoleMembershipResponseSchema201,
                 },
             },
+            preHandler: [
+                fastify.requireAuth,
+                fastify.authz.userCan([
+                    {
+                        action: PermissionAction.CREATE,
+                        resource: PermissionResource.ROLE_MEMBERSHIPS,
+                    },
+                ]),
+            ],
         },
         async (request, reply) => {
             const { roleId } = request.params;
             const { userId } = request.body;
+
+            const user = request.session?.user; // Current authenticated user
+
+            if (!user) {
+                throw new UnauthorizedError(ErrorMessages.UNAUTHENTICATED);
+            }
+
+            const activeOrganizationId =
+                request.activeOrganizationId ??
+                (
+                    await fastify.authz.organizationMemberships.getActiveOrganizationForUserOrThrow(
+                        user.id
+                    )
+                ).id;
+
+            // Verify that the user to be added is a member of the active organization
+            await fastify.authz.organizationMemberships.isUserMemberOfOrganizationOrThrow(
+                userId,
+                activeOrganizationId
+            );
+
+            // Verify that the role belongs to the user's active organization
+            await fastify.authz.roles.getRoleByIdAndOrganizationIdOrThrow(
+                roleId,
+                activeOrganizationId
+            );
 
             await fastify.authz.roleMemberships.createRoleMembership(roleId, userId);
 
@@ -221,11 +410,37 @@ export async function rolesRoutes(fastify: FastifyInstance) {
                 params: deleteRoleMembershipRequestParamsSchema,
                 response: { 204: deleteRoleMembershipResponseSchema204 },
             },
+            preHandler: [
+                fastify.requireAuth,
+                fastify.authz.userCan([
+                    {
+                        action: PermissionAction.DELETE,
+                        resource: PermissionResource.ROLE_MEMBERSHIPS,
+                    },
+                ]),
+            ],
         },
         async (request, reply) => {
-            const { roleId, userId } = request.params as { roleId: number; userId: string };
+            const { roleId, userId } = request.params;
+            const user = request.session?.user; // Current authenticated user
 
-            await fastify.authz.roleMemberships.deleteRoleMembership(roleId, userId);
+            if (!user) {
+                throw new UnauthorizedError(ErrorMessages.UNAUTHENTICATED);
+            }
+
+            const activeOrganizationId =
+                request.activeOrganizationId ??
+                (
+                    await fastify.authz.organizationMemberships.getActiveOrganizationForUserOrThrow(
+                        user.id
+                    )
+                ).id;
+
+            await fastify.authz.roleMemberships.deleteRoleMembership(
+                roleId,
+                userId,
+                activeOrganizationId
+            );
 
             return reply.code(204).send();
         }
@@ -240,10 +455,37 @@ export async function rolesRoutes(fastify: FastifyInstance) {
                     200: getRolePermissionsResponseSchema200,
                 },
             },
+            preHandler: [
+                fastify.requireAuth,
+                fastify.authz.userCan([
+                    {
+                        action: PermissionAction.READ,
+                        resource: PermissionResource.ROLE_PERMISSIONS,
+                    },
+                ]),
+            ],
         },
         async (request, reply) => {
             const { roleId } = request.params;
-            const permissions = await fastify.authz.rolePermissions.getRolePermissions(roleId);
+            const userId = request.session?.user.id;
+
+            if (!userId) {
+                throw new UnauthorizedError(ErrorMessages.UNAUTHENTICATED);
+            }
+
+            const activeOrganizationId =
+                request.activeOrganizationId ??
+                (
+                    await fastify.authz.organizationMemberships.getActiveOrganizationForUserOrThrow(
+                        userId
+                    )
+                ).id;
+
+            const permissions = await fastify.authz.rolePermissions.getRolePermissions(
+                roleId,
+                activeOrganizationId
+            );
+
             return reply.code(200).sendWithDates(permissions);
         }
     );
@@ -262,10 +504,44 @@ export async function rolesRoutes(fastify: FastifyInstance) {
                     201: postRolePermissionResponseSchema201,
                 },
             },
+            preHandler: [
+                fastify.requireAuth,
+                fastify.authz.userCan([
+                    {
+                        action: PermissionAction.UPDATE,
+                        resource: PermissionResource.ROLE_PERMISSIONS,
+                    },
+                ]),
+            ],
         },
         async (request, reply) => {
             const { roleId } = request.params;
             const { permissionId } = request.body;
+
+            const userId = request.session?.user.id;
+            if (!userId) {
+                throw new UnauthorizedError(ErrorMessages.UNAUTHENTICATED);
+            }
+
+            const activeOrganizationId =
+                request.activeOrganizationId ??
+                (
+                    await fastify.authz.organizationMemberships.getActiveOrganizationForUserOrThrow(
+                        userId
+                    )
+                ).id;
+
+            // Verify that the role belongs to the user's active organization
+            await fastify.authz.roles.getRoleByIdAndOrganizationIdOrThrow(
+                roleId,
+                activeOrganizationId
+            );
+
+            // Verify that the permission is valid and scoped to the organization
+            await fastify.authz.permissions.getPermissionByIdOrThrow(permissionId, [
+                PermissionScope.ORGANIZATION,
+            ]);
+
             await fastify.authz.rolePermissions.createRolePermission(roleId, permissionId);
             return reply.code(201).send();
         }
@@ -278,10 +554,37 @@ export async function rolesRoutes(fastify: FastifyInstance) {
                 params: deleteRolePermissionRequestParamsSchema,
                 response: { 204: deleteRolePermissionResponseSchema204 },
             },
+            preHandler: [
+                fastify.requireAuth,
+                fastify.authz.userCan([
+                    {
+                        action: PermissionAction.UPDATE,
+                        resource: PermissionResource.ROLE_PERMISSIONS,
+                    },
+                ]),
+            ],
         },
         async (request, reply) => {
             const { roleId, permissionId } = request.params;
-            await fastify.authz.rolePermissions.deleteRolePermission(roleId, permissionId);
+            const userId = request.session?.user.id;
+
+            if (!userId) {
+                throw new UnauthorizedError(ErrorMessages.UNAUTHENTICATED);
+            }
+
+            const activeOrganizationId =
+                request.activeOrganizationId ??
+                (
+                    await fastify.authz.organizationMemberships.getActiveOrganizationForUserOrThrow(
+                        userId
+                    )
+                ).id;
+
+            await fastify.authz.rolePermissions.deleteRolePermission(
+                roleId,
+                permissionId,
+                activeOrganizationId
+            );
             return reply.code(204).send();
         }
     );

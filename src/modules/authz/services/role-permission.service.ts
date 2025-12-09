@@ -1,9 +1,9 @@
 import type { FastifyInstance } from 'fastify';
 
 export const createRolePermissionService = (fastify: FastifyInstance) => ({
-    getRolePermissions: async (roleId: number) => {
+    getRolePermissions: async (roleId: number, organizationId?: string) => {
         const permissions = await fastify.prisma.rolePermission.findMany({
-            where: { roleId },
+            where: { roleId, role: { organizationId } },
             include: {
                 permission: true,
             },
@@ -20,12 +20,15 @@ export const createRolePermissionService = (fastify: FastifyInstance) => ({
         });
     },
 
-    deleteRolePermission: async (roleId: number, permissionId: number) => {
+    deleteRolePermission: async (roleId: number, permissionId: number, organizationId?: string) => {
         await fastify.prisma.rolePermission.delete({
             where: {
                 roleId_permissionId: {
                     roleId,
                     permissionId,
+                },
+                role: {
+                    organizationId,
                 },
             },
         });
