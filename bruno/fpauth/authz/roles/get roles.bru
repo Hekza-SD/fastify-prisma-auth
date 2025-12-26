@@ -1,0 +1,20 @@
+meta {
+  name: get roles
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/authz/roles?organizationId={{globalOrgId}}
+  body: none
+  auth: inherit
+}
+
+params:query {
+  organizationId: {{globalOrgId}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

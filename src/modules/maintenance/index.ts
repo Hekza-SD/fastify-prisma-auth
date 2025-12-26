@@ -1,5 +1,5 @@
 import fp from 'fastify-plugin';
-import maintenanceRoutes from './maintenance.route';
+import maintenanceRoutes from './maintenance.routes';
 import maintenancePlugin from './maintenance.plugin';
 
 export const DEFAULT_MODULE_PREFIX = '/api/maintenance';

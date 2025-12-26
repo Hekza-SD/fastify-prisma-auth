@@ -12,7 +12,8 @@
         "lint:fix": "eslint . --ext .ts --fix",
         "format": "prettier --write .",
         "format:check": "prettier --check .",
-        "prepare": "husky install"
+        "prepare": "husky install",
+        "seed": "tsx prisma/seed.ts"
     },
     "keywords": [
         "fastify",
@@ -31,15 +32,23 @@
         "@fastify/helmet": "^13.0.2",
         "@prisma/adapter-pg": "^7.2.0",
         "@prisma/client": "^7.2.0",
+        "@fastify/type-provider-json-schema-to-ts": "^5.0.0",
+        "@fastify/type-provider-typebox": "^6.1.0",
+        "@sinclair/typebox": "^0.34.41",
         "better-auth": "^1.3.34",
         "dotenv": "^17.2.3",
         "fastify": "^5.6.1",
         "fastify-plugin": "^5.1.0",
+        "json-logic-js": "^2.0.5",
+        "pg": "^8.16.3",
+        "typebox": "^1.0.53",
         "zod": "^4.1.12"
     },
     "devDependencies": {
         "@better-auth/cli": "^1.3.34",
+        "@types/json-logic-js": "^2.0.8",
         "@types/node": "^24.10.0",
+        "@types/pg": "^8.15.6",
         "@typescript-eslint/eslint-plugin": "^8.46.3",
         "@typescript-eslint/parser": "^8.46.3",
         "eslint": "^9.39.1",

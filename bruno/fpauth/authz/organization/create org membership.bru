@@ -1,0 +1,26 @@
+meta {
+  name: create org membership
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/authz/organizations/:organizationId/members
+  body: json
+  auth: inherit
+}
+
+params:path {
+  organizationId: {{devOrgId}}
+}
+
+body:json {
+  {
+    "userId": "K8PCNoNCdXBBPh4210Sa9HnutZ5vN1oW"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

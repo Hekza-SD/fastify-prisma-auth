@@ -1,0 +1,27 @@
+meta {
+  name: patch role
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{baseUrl}}/api/authz/roles/:roleId
+  body: json
+  auth: inherit
+}
+
+params:path {
+  roleId: 4
+}
+
+body:json {
+  {
+    "name": "patchedName",
+    "description": "patchedDescription"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

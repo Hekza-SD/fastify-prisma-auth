@@ -8,6 +8,8 @@ datasource db {
   schemas  = ["core", "authz", "audit"]
 }
 
+// CORE
+  
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
@@ -18,6 +20,12 @@ model User {
   updatedAt     DateTime  @default(now()) @updatedAt
   sessions      Session[]
   accounts      Account[]
+
+  // Modules relations
+  roleMemberships   RoleMembership[]
+  organizationMemberships OrganizationMembership[]
+  userActiveOrganizations UserActiveOrganization[]
+  auditLogs     AccessAuditLog[]
 
   @@map("user")
   @@schema("core")
@@ -69,4 +77,188 @@ model Verification {
 
   @@map("verification")
   @@schema("core")
+}
+
+//AUTHZ
+// ORGANIZATIONS / TENANTS
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  // relations
+  users       OrganizationMembership[]
+  roles       Role[]
+  userActiveOrganizations UserActiveOrganization[]
+  accessAuditLogs AccessAuditLog[]
+
+  @@schema("authz")
+}
+
+// Relation between users and organizations
+model OrganizationMembership {
+  id          Int   @id @default(autoincrement())
+  userId         String
+  organizationId String
+  meta           Json?
+
+  user         User         @relation(fields: [userId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+  
+  @@unique([userId, organizationId])
+  @@schema("authz")
+}
+
+// RBAC (roles, permissions, policies)
+model Role {
+  id          Int   @id @default(autoincrement())
+  organizationId String
+  name        String
+  description String
+  createdAt   DateTime @default(now())
+  permissions RolePermission[]
+  memberships RoleMembership[]  // users that have this role
+  
+  organization Organization? @relation(fields: [organizationId], references: [id])
+  parentRoles RoleInherit[] @relation("ParentRole")
+  childRoles RoleInherit[] @relation("ChildRole")
+
+  @@unique([name, organizationId])
+  @@schema("authz")
+}
+
+// Relation for role inheritance (role hierarchy)
+model RoleInherit {
+  id          Int   @id @default(autoincrement())
+  parentId  Int
+  childId   Int
+
+  parent Role @relation("ParentRole", fields:[parentId], references:[id])
+  child  Role @relation("ChildRole", fields:[childId], references:[id])
+
+  @@unique([parentId, childId])
+  @@schema("authz")
+}
+
+// This table's content should not be changed on runtime, only via migrations
+model Permission {
+  id          Int   @id @default(autoincrement())
+  
+  // We dont use a prisma enum but a typescript enum to allow more dynamic permissions   
+  // without needing to migrate the database each time a new permission is added
+  action      PermissionAction
+  resource    PermissionResource
+  description String?
+  createdAt   DateTime @default(now())
+  scope      PermissionScope @default(GLOBAL)
+
+  rolePermissions RolePermission[]
+
+  @@unique([action, resource])
+  @@schema("authz")
+}
+
+// Must match the PermissionAction typescript enum
+enum PermissionAction {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+  BYPASS
+  @@schema("authz")
+}
+
+// Must match the PermissionResource typescript enum
+enum PermissionResource {
+  ACTIVE_ORGANIZATION
+  ORGANIZATION_MEMBERSHIP
+  ORGANIZATION_ROLES
+  ROLE_MEMBERSHIPS
+  ROLE_PERMISSIONS
+  PERMISSIONS
+  ACCESS_AUDIT_LOGS
+  @@schema("authz")
+}
+
+enum PermissionScope {
+  GLOBAL
+  ORGANIZATION
+  @@schema("authz")
+}
+
+model Policy {
+  id          Int   @id @default(autoincrement())
+  name        String
+  description String?
+  definition  Json     // JSONLogic / CEL style definition
+  organizationId String? // null => global policy
+  createdAt   DateTime @default(now())
+
+  rolePermissions RolePermission[]
+
+  @@unique([name, organizationId])
+  @@schema("authz")
+}
+
+// Junction table for Role-Permission with optional Policy constraint
+model RolePermission {
+  id          Int   @id @default(autoincrement())
+  roleId       Int
+  permissionId Int
+  policyId     Int?   // optional policy constraint
+
+  role       Role        @relation(fields:[roleId], references:[id])
+  permission Permission  @relation(fields:[permissionId], references:[id])
+  policy     Policy?     @relation(fields:[policyId], references:[id])
+
+  @@unique([roleId, permissionId])
+  @@schema("authz")
+}
+
+// Relation between users and roles
+model RoleMembership {
+  id          Int   @id @default(autoincrement())
+  userId         String
+  roleId         Int
+  meta           Json?
+  assignedAt     DateTime @default(now())
+
+  user User @relation(fields:[userId], references:[id])
+  role Role @relation(fields:[roleId], references:[id])
+
+  @@unique([userId, roleId])
+  @@schema("authz")
+}
+
+model UserActiveOrganization {
+  userId         String   @id
+  organizationId String
+
+  user           User      @relation(fields: [userId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@unique([userId, organizationId])
+  @@map("user_active_organization")
+  @@schema("authz")
+}
+
+
+model AccessAuditLog {
+  id          Int   @id @default(autoincrement())
+  userId     String
+  organizationId String
+  action     PermissionAction
+  resource   PermissionResource
+  resourceId String?
+  allowed    Boolean
+  context    Json?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields:[userId], references:[id])
+  organization Organization @relation(fields:[organizationId], references:[id])
+
+
+  @@schema("audit")
 }

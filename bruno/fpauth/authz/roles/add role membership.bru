@@ -1,0 +1,26 @@
+meta {
+  name: add role membership
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/api/authz/roles/:roleId/members
+  body: json
+  auth: inherit
+}
+
+params:path {
+  roleId: 4
+}
+
+body:json {
+  {
+    "userId":"z8Ll6xoESyUt8danEnxrF7zAs1nRySnZ"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

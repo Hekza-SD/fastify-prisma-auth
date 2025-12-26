@@ -1,0 +1,20 @@
+meta {
+  name: delete role
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{baseUrl}}/api/authz/roles/:roleId
+  body: none
+  auth: inherit
+}
+
+params:path {
+  roleId: 4
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

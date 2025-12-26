@@ -2,8 +2,9 @@ import type { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
 
 import { CustomError } from '../errors/custom-error';
 import { prismaCatchHandler } from '../errors/catch-handlers/prisma-error-handler';
+import { validationCatchHandler } from '../errors/catch-handlers/validation-error-handler';
 
-const CATCH_HANDLERS = [prismaCatchHandler];
+const CATCH_HANDLERS = [prismaCatchHandler, validationCatchHandler];
 
 export async function errorHandler(
     error: FastifyError,
@@ -34,9 +35,13 @@ export class ErrorHandler {
 
     private async handleKnownCatches(error: FastifyError): Promise<FastifyError | CustomError> {
         for (const handler of CATCH_HANDLERS) {
-            const handledError = await handler(error);
-            if (handledError !== undefined) {
-                return handledError;
+            try {
+                const handledError = await handler(error);
+                if (handledError !== undefined) {
+                    return handledError;
+                }
+            } catch (e: unknown) {
+                this.request.log.error(`Catch handler ${handler.name} failed`);
             }
         }
         return error;

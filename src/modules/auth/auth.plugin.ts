@@ -2,11 +2,11 @@ import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import type { FastifyInstance } from 'fastify';
 import fp from 'fastify-plugin';
-import { prisma } from '../../plugins/prisma';
+import { requireAuth } from './auth-pre-handler.';
 
-export const authPlugin = fp(async (fastify: FastifyInstance) => {
+async function authPlugin(fastify: FastifyInstance) {
     const auth = betterAuth({
-        database: prismaAdapter(prisma, {
+        database: prismaAdapter(fastify.prisma, {
             provider: 'postgresql',
         }),
         appName: fastify.config.APP_NAME,
@@ -21,7 +21,7 @@ export const authPlugin = fp(async (fastify: FastifyInstance) => {
             autoSignInAfterSignUp: true,
             sendResetPassword: async ({ user, url, token }) => {
                 fastify.log.info(
-                    `Send reset password email to ${user.email}: ${url} (token: ${token})`
+                    `TOOD : Send reset password email to ${user.email}: ${url} (token: ${token})`
                 );
             },
         },
@@ -34,7 +34,7 @@ export const authPlugin = fp(async (fastify: FastifyInstance) => {
         emailVerification: {
             sendVerificationEmail: async ({ user, url, token }) => {
                 fastify.log.info(
-                    `Send verification email to ${user.email}: ${url} (token: ${token})`
+                    `TODO : Send verification email to ${user.email}: ${url} (token: ${token})`
                 );
             },
             sendOnSignUp: true,
@@ -44,10 +44,19 @@ export const authPlugin = fp(async (fastify: FastifyInstance) => {
     });
 
     fastify.decorate('auth', auth);
-});
+    fastify.decorateRequest('session', null);
+    fastify.decorate('requireAuth', requireAuth);
+}
 
 declare module 'fastify' {
     interface FastifyInstance {
         auth: ReturnType<typeof betterAuth>;
+        requireAuth: typeof requireAuth;
+    }
+
+    interface FastifyRequest {
+        session: Awaited<ReturnType<ReturnType<typeof betterAuth>['api']['getSession']>> | null;
     }
 }
+
+export default fp(authPlugin, { name: 'auth-plugin' });

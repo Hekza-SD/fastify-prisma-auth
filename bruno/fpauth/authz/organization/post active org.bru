@@ -1,0 +1,22 @@
+meta {
+  name: post active org
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/authz/organizations/active
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "organizationId": "{{devOrgId}}"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

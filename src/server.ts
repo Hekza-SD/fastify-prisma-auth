@@ -1,4 +1,4 @@
-import Fastify, { fastify } from 'fastify';
+import Fastify from 'fastify';
 
 import { registerGlobalPlugins } from './plugins';
 import { registerModules } from './modules';

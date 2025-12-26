@@ -1,0 +1,20 @@
+meta {
+  name: get org members
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/authz/organizations/:organizationId/members
+  body: none
+  auth: inherit
+}
+
+params:path {
+  organizationId: {{globalOrgId}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,21 @@
+meta {
+  name: delete org membership
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{baseUrl}}/api/authz/organizations/:organizationId/members/:userId
+  body: none
+  auth: inherit
+}
+
+params:path {
+  userId: z8Ll6xoESyUt8danEnxrF7zAs1nRySnZ
+  organizationId: {{globalOrgId}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

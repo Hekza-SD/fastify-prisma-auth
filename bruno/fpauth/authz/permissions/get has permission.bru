@@ -1,0 +1,21 @@
+meta {
+  name: get has permission
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/authz/permissions/has-permission?action=READ&resource=PERMISSION
+  body: none
+  auth: inherit
+}
+
+params:query {
+  action: READ
+  resource: PERMISSION
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
