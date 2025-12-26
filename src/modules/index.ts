@@ -12,5 +12,7 @@ export async function registerModules(fastify: FastifyInstance) {
     });
     fastify.register(monitoringModule, { prefix: '/api/monitoring' });
     fastify.register(authModule, { prefix: '/api/auth' });
-    fastify.register(sandboxModule, { prefix: '/api/sandbox' });
+    if (fastify.config.isDevelopment) {
+        fastify.register(sandboxModule, { prefix: '/api/sandbox' });
+    }
 }
