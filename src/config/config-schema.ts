@@ -14,7 +14,7 @@ export const ConfigSchema = z.object({
 
     LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
 
-    LOG_DIRECTORY: z.string().default('../logs'),
+    LOG_DIRECTORY: z.string().default('./logs'),
     SLOW_LOG_THRESHOLD_MS: z.coerce.number().default(300),
 
     GLOBAL_ORGANIZATION_ID: z.string().uuid().default('00000000-0000-0000-0000-000000000000'),

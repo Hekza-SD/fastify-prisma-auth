@@ -11,9 +11,6 @@ export interface SandboxResponse {
 }
 
 export const createSandboxService = (app: FastifyInstance) => ({
-    /**
-     * Simule une requête avec un délai configurable
-     */
     async delayedRequest(delayMs: number = 500): Promise<SandboxResponse> {
         const start = Date.now();
 
@@ -30,9 +27,6 @@ export const createSandboxService = (app: FastifyInstance) => ({
         };
     },
 
-    /**
-     * Retourne un succès simple
-     */
     async success(): Promise<SandboxResponse> {
         return {
             message: 'Success response',
@@ -42,19 +36,14 @@ export const createSandboxService = (app: FastifyInstance) => ({
         };
     },
 
-    /**
-     * Lance une erreur personnalisée
-     */
     async throwCustomError(): Promise<never> {
         throw new CustomError(`This is a test error with code`);
     },
 
-    /**
-     * Lance une erreur de base de données
-     */
     async throwDatabaseError(): Promise<never> {
         throw new DatabaseError(
             'Simulated database error',
+            undefined,
             {
                 constraint: 'test_constraint',
             },
@@ -63,16 +52,10 @@ export const createSandboxService = (app: FastifyInstance) => ({
         );
     },
 
-    /**
-     * Lance une erreur 500
-     */
     async throwServerError(): Promise<never> {
         throw new Error('Simulated internal server error');
     },
 
-    /**
-     * Retourne une réponse avec des données aléatoires
-     */
     async randomData(count: number = 10) {
         const data = Array.from({ length: count }, (_, i) => ({
             id: i + 1,
@@ -88,9 +71,6 @@ export const createSandboxService = (app: FastifyInstance) => ({
         };
     },
 
-    /**
-     * Test de connexion à la base de données
-     */
     async testDatabase(): Promise<SandboxResponse> {
         const start = Date.now();
 
@@ -116,9 +96,6 @@ export const createSandboxService = (app: FastifyInstance) => ({
         }
     },
 
-    /**
-     * Simule une tâche longue avec progression
-     */
     async longRunningTask(durationMs: number = 2000) {
         const start = Date.now();
         const steps = 5;
@@ -126,7 +103,7 @@ export const createSandboxService = (app: FastifyInstance) => ({
 
         for (let i = 1; i <= steps; i++) {
             await new Promise((resolve) => setTimeout(resolve, stepDuration));
-            // Log progress
+
             app.log.info(`Long running task: ${(i / steps) * 100}% complete`);
         }
 
@@ -141,9 +118,6 @@ export const createSandboxService = (app: FastifyInstance) => ({
         };
     },
 
-    /**
-     * Retourne des informations système
-     */
     async systemInfo() {
         return {
             message: 'System information',
