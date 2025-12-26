@@ -6,20 +6,11 @@ import { config } from '.';
 const logDir = path.resolve(__dirname, '../logs');
 if (!fs.existsSync(logDir)) fs.mkdirSync(logDir, { recursive: true });
 
-export const correlationLoggerOptions = {
+export const slowLoggerOptions = {
     level: 'info',
-    transport: config.isProduction
-        ? {
-              target: 'pino-pretty',
-              options: {
-                  translateTime: 'HH:MM:ss Z',
-                  ignore: 'pid,hostname',
-              },
-          }
-        : undefined,
     mixin() {
         const store = asyncLocalStorage.getStore();
         return store ? { correlationId: store.correlationId } : {};
     },
-    destination: !config.isDevelopment ? path.join(logDir, 'app.log') : undefined,
+    destination: !config.isDevelopment ? path.join(logDir, 'slow.log') : undefined,
 };

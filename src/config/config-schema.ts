@@ -13,4 +13,7 @@ export const ConfigSchema = z.object({
     JWT_SECRET: z.string().min(32),
 
     LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
+
+    LOG_DIRECTORY: z.string().default('../logs'),
+    SLOW_LOG_THRESHOLD_MS: z.coerce.number().default(300),
 });

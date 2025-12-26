@@ -1,0 +1,15 @@
+meta {
+  name: System Info
+  type: http
+  seq: 13
+}
+
+get {
+  url: {{baseUrl}}/api/sandbox/system
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

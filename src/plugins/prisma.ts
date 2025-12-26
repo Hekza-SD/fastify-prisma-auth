@@ -1,11 +1,12 @@
 import fp from 'fastify-plugin';
 import type { FastifyInstance } from 'fastify';
-
-import { PrismaClient } from '../generated/prisma';
-
-const prisma = new PrismaClient();
+import { PrismaClient } from '../generated/prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 
 export const prismaPlugin = fp(async (fastify: FastifyInstance) => {
+    const adapter = new PrismaPg({ connectionString: fastify.config.DATABASE_URL });
+    const prisma = new PrismaClient({ adapter });
+
     await prisma.$connect();
     fastify.decorate('prisma', prisma);
 
@@ -19,5 +20,3 @@ declare module 'fastify' {
         prisma: PrismaClient;
     }
 }
-
-export { prisma };

@@ -1,0 +1,15 @@
+meta {
+  name: Error - Server 500
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/api/sandbox/error/server
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

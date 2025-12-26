@@ -1,4 +1,3 @@
-import { config } from './config';
 import { buildApp } from './server';
 
 const start = async () => {

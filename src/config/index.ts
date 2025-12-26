@@ -16,6 +16,11 @@ if (!parsed.success) {
     process.exit(1);
 }
 
-export const config = { ...parsed.data, isProduction: parsed.data.NODE_ENV === 'prod' };
+export const config = {
+    ...parsed.data,
+    isProduction: parsed.data.NODE_ENV === 'prod',
+    isDevelopment: parsed.data.NODE_ENV === 'dev',
+    isRecette: parsed.data.NODE_ENV === 'rec',
+};
 
 export type Config = typeof config;

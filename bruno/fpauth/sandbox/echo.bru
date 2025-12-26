@@ -1,0 +1,27 @@
+meta {
+  name: Echo (POST)
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{baseUrl}}/api/sandbox/echo
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "message": "Hello from Bruno!",
+    "timestamp": "{{timestamp}}",
+    "test": true,
+    "data": {
+      "nested": "value",
+      "array": [1, 2, 3]
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+}

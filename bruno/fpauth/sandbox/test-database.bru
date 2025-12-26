@@ -1,0 +1,15 @@
+meta {
+  name: Test Database
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{baseUrl}}/api/sandbox/test/database
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

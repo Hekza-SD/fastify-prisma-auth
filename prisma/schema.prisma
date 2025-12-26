@@ -1,12 +1,11 @@
-
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
   output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  schemas  = ["core", "authz", "audit"]
 }
 
 model User {
@@ -21,6 +20,7 @@ model User {
   accounts      Account[]
 
   @@map("user")
+  @@schema("core")
 }
 
 model Session {
@@ -36,6 +36,7 @@ model Session {
 
   @@unique([token])
   @@map("session")
+  @@schema("core")
 }
 
 model Account {
@@ -55,6 +56,7 @@ model Account {
   updatedAt             DateTime  @updatedAt
 
   @@map("account")
+  @@schema("core")
 }
 
 model Verification {
@@ -66,4 +68,5 @@ model Verification {
   updatedAt  DateTime @default(now()) @updatedAt
 
   @@map("verification")
+  @@schema("core")
 }

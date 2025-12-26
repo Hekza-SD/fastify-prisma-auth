@@ -1,0 +1,15 @@
+meta {
+  name: Long Task (default 2000ms)
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{baseUrl}}/api/sandbox/long-task
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

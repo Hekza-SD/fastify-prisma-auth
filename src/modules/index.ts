@@ -3,6 +3,7 @@ import type { FastifyInstance } from 'fastify';
 import { monitoringModule } from './monitoring';
 import { maintenanceModule } from './maintenance';
 import { authModule } from './auth';
+import { sandboxModule } from './sandbox';
 
 export async function registerModules(fastify: FastifyInstance) {
     fastify.register(maintenanceModule, {
@@ -11,4 +12,5 @@ export async function registerModules(fastify: FastifyInstance) {
     });
     fastify.register(monitoringModule, { prefix: '/api/monitoring' });
     fastify.register(authModule, { prefix: '/api/auth' });
+    fastify.register(sandboxModule, { prefix: '/api/sandbox' });
 }

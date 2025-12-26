@@ -1,0 +1,15 @@
+meta {
+  name: Delay (default 500ms)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/sandbox/delay
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

@@ -1,0 +1,19 @@
+meta {
+  name: Random Data (custom 25)
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/api/sandbox/random?count=25
+  body: none
+  auth: inherit
+}
+
+params:query {
+  count: 25
+}
+
+settings {
+  encodeUrl: true
+}

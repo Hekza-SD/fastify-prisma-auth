@@ -1,0 +1,19 @@
+meta {
+  name: Delay (custom 2000ms)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/sandbox/delay?delay=2000
+  body: none
+  auth: inherit
+}
+
+params:query {
+  delay: 2000
+}
+
+settings {
+  encodeUrl: true
+}

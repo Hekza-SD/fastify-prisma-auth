@@ -1,0 +1,15 @@
+meta {
+  name: Random Data (default 10)
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/api/sandbox/random
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}
